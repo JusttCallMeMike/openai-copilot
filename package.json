@@ -1,0 +1,243 @@
+{
+  "name": "openai-copilot",
+  "displayName": "openai-copilot",
+  "description": "Provides live inline code completition similar to github-copilot but using openai (company that created Chat GPT)",
+  "version": "0.0.1",
+  "type": "module",
+  "engines": {
+    "vscode": "^1.78.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./dist/extension.js",
+  "scripts": {
+    "vscode:prepublish": "pnpm run esbuild-base -- --minify",
+    "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/main.js --external:vscode --format=cjs --platform=node",
+    "esbuild": "pnpm run esbuild-base -- --sourcemap",
+    "compile": "tsc -p ./",
+    "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+    "watch": "tsc -watch -p ./",
+    "pretest": "pnpm run compile && pnpm run lint",
+    "compile-tests": "tsc -p . --outDir out",
+    "watch-tests": "tsc -p . -w --outDir out",
+    "lint": "eslint src --ext ts -f mo",
+    "test": "node ./out/test/runTest.js",
+    "sync-packagejson": "tsx  ./tools/sync-package-json.ts",
+    "prestart": "pnpm sync-packagejson",
+    "postinstall": "pnpm sync-packagejson",
+    "preversion": "pnpm sync-packagejson",
+    "dependencies": "pnpm sync-packagejson",
+    "prepack": "pnpm sync-packagejson"
+  },
+  "contributes": {
+    "commands": [
+      {
+        "command": "OpenAiCopilot::setApiToken",
+        "title": "OpenAI Copilot: Set API token"
+      },
+      {
+        "command": "OpenAiCopilot::assistantToggle",
+        "title": "OpenAI Copilot: Toggle Assistant"
+      },
+      {
+        "command": "OpenAiCopilot.hideSuggestion",
+        "title": "Hide",
+        "icon": {
+          "dark": "assets/close_inverse.svg",
+          "light": "assets/close.svg"
+        }
+      },
+      {
+        "command": "OpenAiCopilot.applySuggestion",
+        "title": "Apply",
+        "icon": {
+          "dark": "assets/approve_inverse.svg",
+          "light": "assets/approve.svg"
+        }
+      }
+    ],
+    "configuration": [
+      {
+        "title": "OpenAICopilot",
+        "properties": {
+          "OpenAI.APItoken": {
+            "type": [
+              "string",
+              "undefined"
+            ],
+            "description": "Your Open AI API Token . please check https://platform.openai.com/account/api-keys"
+          },
+          "OpenAI.model": {
+            "type": "string",
+            "default": "gpt-3.5-turbo",
+            "description": "Model name, default is gpt-3.5-turbo . please check https://platform.openai.com/docs/models/overview"
+          },
+          "Others.idleToRespond": {
+            "type": "number",
+            "default": 1.2,
+            "description": "Idle time min to ask for completition"
+          }
+        }
+      }
+    ],
+    "keybindings": [
+      {
+        "key": "tab",
+        "command": "ResponsiveRubberDuck.tab-override",
+        "when": "OpenAiCopilot.enabled && OpenAiCopilot.haveSuggestion"
+      },
+      {
+        "key": "tab",
+        "command": "editor.action.inlineSuggest.accept",
+        "when": "OpenAiCopilot.enabled && OpenAiCopilot.haveSuggestion && !editorTabMovesFocus"
+      },
+      {
+        "key": "ctrl+z",
+        "mac": "cmd+z",
+        "command": "OpenAiCopilot.escape-inline-suggestion",
+        "when": "OpenAiCopilot.enabled && OpenAiCopilot.haveSuggestion"
+      },
+      {
+        "key": "alt+.",
+        "mac": "cmd+.",
+        "command": "OpenAiCopilot.next-inline-suggestion",
+        "when": "OpenAiCopilot.enabled && OpenAiCopilot.haveSuggestion"
+      },
+      {
+        "key": "alt+,",
+        "mac": "cmd+,",
+        "command": "ResponsiveOpenAiCopilotRubberDuck.prev-inline-suggestion",
+        "when": "OpenAiCopilot.enabled && OpenAiCopilot.haveSuggestion"
+      },
+      {
+        "key": "alt+.",
+        "mac": "cmd+.",
+        "command": "OpenAiCopilot.snippet-suggestion",
+        "when": "OpenAiCopilot.enabled"
+      }
+    ]
+  },
+  "devDependencies": {
+    "@microsoft/eslint-plugin-sdl": "github:microsoft/eslint-plugin-sdl",
+    "@putout/plugin-apply-at": "^1.0.2",
+    "@putout/plugin-apply-early-return": "^2.0.0",
+    "@putout/plugin-apply-flat-map": "^2.0.0",
+    "@putout/plugin-apply-nullish-coalescing": "^1.0.0",
+    "@putout/plugin-apply-optional-chaining": "^3.0.0",
+    "@putout/plugin-apply-shorthand-properties": "^3.0.2",
+    "@putout/plugin-convert-apply-to-spread": "^3.1.0",
+    "@putout/plugin-convert-assignment-to-arrow-function": "^1.2.0",
+    "@putout/plugin-convert-assignment-to-comparison": "^1.0.0",
+    "@putout/plugin-convert-commonjs-to-esm": "^9.2.0",
+    "@putout/plugin-convert-object-assign-to-merge-spread": "^6.0.0",
+    "@putout/plugin-convert-object-entries-to-array-entries": "^1.0.1",
+    "@putout/plugin-convert-to-arrow-function": "^4.0.0",
+    "@putout/plugin-declare-before-reference": "^2.0.0",
+    "@putout/plugin-declare-imports-first": "^2.1.0",
+    "@putout/plugin-for-of": "^1.3.0",
+    "@putout/plugin-jest": "^1.0.0",
+    "@putout/plugin-logical-expressions": "^2.1.0",
+    "@putout/plugin-maybe": "^1.1.4",
+    "@putout/plugin-merge-duplicate-imports": "^9.0.0",
+    "@putout/plugin-merge-if-statements": "^3.1.0",
+    "@putout/plugin-nodejs": "^6.0.0",
+    "@putout/plugin-printer": "^1.4.1",
+    "@putout/plugin-promises": "^10.0.0",
+    "@putout/plugin-react-hooks": "^5.1.0",
+    "@putout/plugin-remove-nested-blocks": "^6.3.0",
+    "@putout/plugin-remove-useless-escape": "^3.2.0",
+    "@putout/plugin-remove-useless-template-expressions": "^1.2.0",
+    "@putout/plugin-simplify-assignment": "^3.0.0",
+    "@putout/plugin-simplify-ternary": "^5.1.0",
+    "@putout/plugin-try-catch": "^2.0.0",
+    "@putout/plugin-types": "^1.5.0",
+    "@putout/plugin-typescript": "^3.1.0",
+    "@putout/processor-json": "^6.0.1",
+    "@putout/processor-typescript": "^6.0.0",
+    "@putout/processor-yaml": "^5.0.1",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "@types/vscode": "^1.78.0",
+    "@typescript-eslint/eslint-plugin": "^5.59.1",
+    "@typescript-eslint/parser": "^5.59.1",
+    "@vscode/test-electron": "^2.3.0",
+    "esbuild": "^0.17.19",
+    "eslint": "^8.39.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-formatter-mo": "^1.2.0",
+    "eslint-import-resolver-typescript": "^3.5.5",
+    "eslint-plugin-etc": "^2.0.3",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^16.0.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-putout": "^17.6.0",
+    "eslint-plugin-security": "^1.7.1",
+    "eslint-plugin-sonarjs": "^0.19.0",
+    "eslint-plugin-unicorn": "^47.0.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "prettier": "^2.8.8",
+    "putout": "^29.9.0",
+    "putout-processor-typos": "^1.0.2",
+    "tsx": "^3.12.7",
+    "typescript": "^5.0.4"
+  },
+  "categories": [
+    "Programming Languages",
+    "Snippets",
+    "Other"
+  ],
+  "keywords": [
+    "javascript",
+    "python",
+    "typescript",
+    "php",
+    "autocomplete",
+    "ruby",
+    "java",
+    "go",
+    "golang",
+    "bash",
+    "kotlin",
+    "html",
+    "css",
+    "ocaml",
+    "perl",
+    "rust",
+    "julia",
+    "lua",
+    "haskell",
+    "c",
+    "cpp",
+    "c++",
+    "csharp",
+    "c#",
+    "react",
+    "swift",
+    "objective-c",
+    "objectivec",
+    "ai",
+    "method completion",
+    "intellicode",
+    "intellisense",
+    "snippets",
+    "kite",
+    "nodejs",
+    "node",
+    "node.js",
+    "jupyter"
+  ],
+  "dependencies": {
+    "@putout/engine-parser": "^6.2.0",
+    "openai": "^3.2.1",
+    "pkg-dir": "^7.0.0",
+    "ts-node": "^10.9.1"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "openai@3.2.1": "patches/openai@3.2.1.patch"
+    }
+  }
+}
